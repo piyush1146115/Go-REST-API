@@ -45,9 +45,10 @@ func handleRequests(){
 	//http.HandleFunc("/", homePage)
 	http.HandleFunc("/articles", allArticles)
 	http.HandleFunc("/increment", incrementCounter)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, r.URL.Path[1:])
-	})
+	//http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	//	http.ServeFile(w, r, r.URL.Path[1:])
+	//})
+	http.Handle("/", http.FileServer(http.Dir("./Static")))
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 func main() {
