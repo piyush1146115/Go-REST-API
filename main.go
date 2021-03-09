@@ -31,6 +31,7 @@ func allArticles(w http.ResponseWriter, r *http.Request){
 
 func homePage(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, "Homepage Endpoint Hit")
+	//http.ServeFile(w, r, r.URL.Path[1:])
 }
 
 func incrementCounter(w http.ResponseWriter, r *http.Request) {
@@ -41,9 +42,12 @@ func incrementCounter(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests(){
-	http.HandleFunc("/", homePage)
+	//http.HandleFunc("/", homePage)
 	http.HandleFunc("/articles", allArticles)
 	http.HandleFunc("/increment", incrementCounter)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, r.URL.Path[1:])
+	})
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 func main() {
