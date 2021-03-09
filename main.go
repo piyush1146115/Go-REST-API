@@ -5,7 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"sync"
 )
+
+var counter int
+var mutex = &sync.Mutex{}
 
 type Article struct{
 	Title string `json:"Title"`
@@ -28,9 +33,17 @@ func homePage(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, "Homepage Endpoint Hit")
 }
 
+func incrementCounter(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	counter++
+	fmt.Fprintf(w, strconv.Itoa(counter))
+	mutex.Unlock()
+}
+
 func handleRequests(){
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/articles", allArticles)
+	http.HandleFunc("/increment", incrementCounter)
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 func main() {
