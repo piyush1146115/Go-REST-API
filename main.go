@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -59,6 +60,20 @@ func incrementCounter(w http.ResponseWriter, r *http.Request) {
 	mutex.Unlock()
 }
 
+func createNewArticle(w http.ResponseWriter, r *http.Request) {
+	// get the body of our POST request
+	// return the string response containing the request body
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var article Article
+	json.Unmarshal(reqBody, &article)
+	// update our global Articles array to include
+	// our new Article
+	Articles = append(Articles, article)
+
+	json.NewEncoder(w).Encode(article)
+	//fmt.Fprintf(w, "%+v", string(reqBody))
+}
+
 func handleRequests(){
 	//http.HandleFunc("/", homePage)
 	//http.HandleFunc("/articles", allArticles)
@@ -76,6 +91,7 @@ func handleRequests(){
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/articles", returnAllArticles)
 	myRouter.HandleFunc("/article/{id}", returnSingleArticle)
+	myRouter.HandleFunc("/article", createNewArticle).Methods("POST")
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
