@@ -91,7 +91,31 @@ func deleteArticle(w http.ResponseWriter, r *http.Request){
 			Articles = append(Articles[:index], Articles[index+1:]...)
 		}
 	}
+
 	fmt.Println(w, "DELETE Endpoint Hit")
+}
+
+func updateArticles(w http.ResponseWriter, r *http.Request){
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	reqbody,_ := ioutil.ReadAll(r.Body)
+	var article Article
+	json.Unmarshal(reqbody, &article)
+
+	for index, art := range Articles {
+		// if our id path parameter matches one of our
+		// articles
+		if art.Id == id {
+			// updates our Articles array to remove the
+			// article
+			Articles[index] = article
+			//Articles = append(Articles[:index], article)
+		}
+	}
+
+	json.NewEncoder(w).Encode(article)
 }
 
 func handleRequests(){
@@ -112,7 +136,8 @@ func handleRequests(){
 	myRouter.HandleFunc("/articles", returnAllArticles)
 	//myRouter.HandleFunc("/article/{id}", returnSingleArticle)
 	myRouter.HandleFunc("/article", createNewArticle).Methods("POST")
-	myRouter.HandleFunc("/article/{id}", deleteArticle).Methods("DELETE")
+	//myRouter.HandleFunc("/article/{id}", deleteArticle).Methods("DELETE")
+	myRouter.HandleFunc("/article/{id}", updateArticles).Methods("PUT")
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
