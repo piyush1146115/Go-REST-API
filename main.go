@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
-	"github.com/gorilla/mux"
+	"time"
 )
 
 var counter int
@@ -27,6 +29,8 @@ var Articles []Article
 //	fmt.Println("Endpoint Hit: All articles endpoint")
 //	json.NewEncoder(w).Encode(Articles)
 //}
+
+
 
 func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -141,6 +145,25 @@ func handleRequests(){
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
+var mySigningKey = []byte("secretphrase")
+
+func GenerateJWT()(string, error){
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+
+	claims["authorized"] = true
+	claims["user"] = "Elliot Forbes"
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+
+	tokenString, err := token.SignedString(mySigningKey)
+
+	if err != nil{
+		fmt.Errorf("Something went wrong: %s", err.Error())
+		return "", err
+	}
+
+	return tokenString, err
+}
 
 func main() {
 //fmt.Println("Hello")
@@ -151,5 +174,12 @@ func main() {
 	}
 
 	fmt.Println("Rest API v2.0 - Mux Routers")
-	handleRequests()
+	//handleRequests()
+
+	tokenString, err := GenerateJWT()
+	if err != nil{
+		fmt.Println("Error generating token string")
+	}
+
+	fmt.Println(tokenString)
 }
