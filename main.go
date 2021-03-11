@@ -46,7 +46,39 @@ func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
+var users = map[string]string{
+	"test": "secret",
+}
+
+func isAuthorised(username, password string) bool{
+	pass, ok := users[username]
+	if !ok {
+		return false
+	}
+	return password == pass
+}
+
+
 func returnAllArticles(w http.ResponseWriter, r *http.Request){
+	w.Header().Add("Content-Type", "application/json")
+	username, password, ok := r.BasicAuth()
+
+	if !ok{
+		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"message": "No basic auth present"}`))
+		return
+	}
+
+	if !isAuthorised(username, password) {
+		w.Header().Add("WWW-Authenticate", `Basic realm="Give username and password"`)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"message": "Invalid username or password"}`))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 	fmt.Println("Endpoint Hit: returnAllArticles")
 	json.NewEncoder(w).Encode(Articles)
 }
@@ -174,12 +206,12 @@ func main() {
 	}
 
 	fmt.Println("Rest API v2.0 - Mux Routers")
-	//handleRequests()
+	handleRequests()
 
-	tokenString, err := GenerateJWT()
-	if err != nil{
-		fmt.Println("Error generating token string")
-	}
-
-	fmt.Println(tokenString)
+	//tokenString, err := GenerateJWT()
+	//if err != nil{
+	//	fmt.Println("Error generating token string")
+	//}
+	//
+	//fmt.Println(tokenString)
 }
